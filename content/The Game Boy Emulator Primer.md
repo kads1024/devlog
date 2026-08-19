@@ -182,7 +182,7 @@ In CHIP-8, your emulator was **a program that runs a program.**
 
 For the Game Boy, your emulator must become **a simulation of several machines that share a clock and a bus.**
 
-The CPU is one machine. The PPU (graphics) is another. The timer is another. The APU (sound) is another. They run *simultaneously* in real hardware. Your emulator will fake simultaneity by interleaving them very finely — running the CPU for one instruction, then telling the PPU "4 ticks passed, catch up," then telling the timer the same, and so on.
+The CPU is one machine. The PPU (graphics) is another. The timer is another. The APU (sound) is another. They run *simultaneously* in real hardware. Your emulator will fake simultaneity by interleaving them very finely, running the CPU for one instruction, then telling the PPU "4 ticks passed, catch up," then telling the timer the same, and so on.
 
 That interleaving loop is the heart of a Game Boy emulator. If you understand nothing else from this document, understand this: **your main loop is not "run instructions." Your main loop is "advance time, and let every component react to the time that passed."**
 
