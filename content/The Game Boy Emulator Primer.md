@@ -207,7 +207,7 @@ The clerk's entire life is this loop:
 
 1. Look at the bookmark. Go to that drawer. Read the note in it.
 2. Move the bookmark to the next drawer.
-3. Do exactly what the note says — no more, no less, no interpretation.
+3. Do exactly what the note says. No more, no less, no interpretation.
 4. Go to step 1.
 
 He does this about four million times a second. He never gets tired, never questions an instruction, never notices when the instructions are nonsense. If a note says "go to drawer 500 and start reading instructions there," he does it, even if drawer 500 contains a picture of a tree.
