@@ -216,7 +216,7 @@ He does this about four million times a second. He never gets tired, never quest
 
 ### Why it exists
 
-The alternative to a CPU is *fixed-function hardware*: a circuit built to do one specific thing. A calculator chip from 1972 can only calculate. A CPU is a circuit that does whatever a list of numbers in memory tells it to do — which means one piece of silicon can be Tetris on Tuesday and Pokémon on Wednesday. **The CPU is the invention of "software."**
+The alternative to a CPU is *fixed-function hardware*: a circuit built to do one specific thing. A calculator chip from 1972 can only calculate. A CPU is a circuit that does whatever a list of numbers in memory tells it to do, which means one piece of silicon can be Tetris on Tuesday and Pokémon on Wednesday. **The CPU is the invention of "software."**
 
 ### How it works: the three parts
 
