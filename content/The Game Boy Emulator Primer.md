@@ -656,7 +656,7 @@ Interrupts are checked **between instructions**, not during. Your CPU step funct
 
 ---
 
-## 2.10 DMA — Direct Memory Access
+## 2.10 DMA: Direct Memory Access
 
 ### The problem this solves
 
