@@ -89,7 +89,7 @@ The Game Boy has five interrupt sources that can seize the CPU between instructi
 **CHIP-8's display was a framebuffer.**
 64×32 pixels. One bit each. You had a 2D array. `DXYN` XORed sprite bytes into it. When you wanted to show it, you drew the whole array. Drawing was an *event*.
 
-The Game Boy has no framebuffer that you can just read. It has a graphics processor that reconstructs the image from *tiles* and *maps* and *sprite descriptors*, **one horizontal line at a time**, continuously, forever, in lockstep with the CPU — and games change the drawing rules *in the middle of a frame* to create effects the hardware was never designed to produce.
+The Game Boy has no framebuffer that you can just read. It has a graphics processor that reconstructs the image from *tiles* and *maps* and *sprite descriptors*, **one horizontal line at a time**, continuously, forever, in lockstep with the CPU, and games change the drawing rules *in the middle of a frame* to create effects the hardware was never designed to produce.
 
 **CHIP-8's "hardware" was three things.**
 A display, a 16-key keypad, and two timers. That's the whole peripheral set.
