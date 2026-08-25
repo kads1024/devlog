@@ -7,7 +7,7 @@ tags:
   - graphics
   - raytracing
 ---
-![[res/render.png]]
+![[res/raytracer.png]]
 
 **1024×768. Four spheres, three point lights, a checkerboard plane.** Diffuse and Phong specular shading, hard shadows, recursive reflection, and refraction with total internal reflection. ~350 lines of C++20. No dependencies, no graphics API, just a `for` loop and a `.ppm` file.
 
@@ -288,9 +288,6 @@ Ordered the way I'd actually pick them up:
 6. **Fresnel.** Reflection and refraction are currently mixed by fixed weights, but real glass reflects more at grazing angles. Schlick's approximation is a few lines and would visibly improve the glass sphere.
 7. **Anti-aliasing** via multiple jittered samples per pixel. The sphere silhouettes are noticeably stair-stepped at one sample.
 8. **Distance-scaled shadow epsilon** in place of the fixed `1e-3`.
-
-**Render time**, 1024×768, single-threaded, `-O2`: **105ms**, ~7.5M rays/s primary.
-**Method:** min of 15 runs after two discarded warm-ups, timing the render loop only (the PPM write is excluded). Median 109.4ms, stdev ±4.9%. Measured on GCC 13.3, single-vCPU Linux container (not a fast machine), and the noise band is wide enough that anything under a 5% change is unmeasurable here. `render()` times itself and prints throughput, so this is reproducible rather than remembered.
 
 ---
 ## What I took away
