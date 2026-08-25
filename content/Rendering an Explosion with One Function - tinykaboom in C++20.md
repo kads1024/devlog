@@ -1,6 +1,5 @@
 ---
 title: Rendering an Explosion with One Function
-subtitle: Reverse-engineering tinykaboom in C++20
 draft: false
 tags:
   - devlog
