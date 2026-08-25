@@ -1,5 +1,5 @@
 ---
-title: Welcome to Quartz
+title: Kenneth's Devlog
 ---
 
 This is a blank Quartz installation.
