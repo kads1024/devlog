@@ -14,7 +14,7 @@ tags:
 I used [ssloy's tinyraytracer](https://github.com/ssloy/tinyraytracer) as a curriculum rather than a codebase: read a lesson, take notes on the idea, close the tab, implement from the notes. Nothing here was copy-pasted, and the three places where that shows most:
 - **[[#Part 7: Refraction, the one I derived|Refraction derived from vector decomposition]]** instead of transcribing the standard Snell's-law one-liner. Total internal reflection falls out of the derivation for free rather than being a special case I looked up.
 - **[[#Part 1: The vector library|A templated N-dimensional vector library]]** built on C++20 concepts and union-based storage specializations. One type covering 2D/3D/4D and both integral and floating-point elements, with `.x`/`.y`/`.z` access _and_ generic `data[i]` indexing.
-- **[[#Part 2: Ray–sphere intersection, the geometric way|A geometric ray–sphere intersection]]** (project, measure, back off) instead of solving the quadratic, with an early-out before the first square root.
+- **[[#Part 2: Ray-sphere intersection, the geometric way|A geometric ray-sphere intersection]]** (project, measure, back off) instead of solving the quadratic, with an early-out before the first square root.
 
 If you only read one section, read [[#Part 7: Refraction, the one I derived|Part 7]].
 
