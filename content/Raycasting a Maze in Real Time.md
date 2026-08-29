@@ -1,5 +1,5 @@
 ---
-title: Raycasting a Maze in Real Time, and What Belongs in a Depth Buffer
+title: Raycasting a Maze in Real Time
 draft: false
 tags:
   - devlog
