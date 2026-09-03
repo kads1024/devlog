@@ -70,12 +70,12 @@ graph TD
 
 The address space it models:
 
-| Range | Contents |
-|---|---|
-| `0x000` – `0x04F` | Unused (on real hardware, the interpreter itself lived here) |
-| `0x050` – `0x09F` | The 80-byte hexadecimal font, 16 characters × 5 bytes |
-| `0x0A0` – `0x1FF` | Unused |
-| `0x200` – `0xFFF` | The ROM, 3584 bytes of it |
+| Range              | Contents                                                     |
+| ------------------ | ------------------------------------------------------------ |
+| `0x000` to `0x04F` | Unused (on real hardware, the interpreter itself lived here) |
+| `0x050` to `0x09F` | The 80-byte hexadecimal font, 16 characters × 5 bytes        |
+| `0x0A0` to `0x1FF` | Unused                                                       |
+| `0x200` to `0xFFF` | The ROM, 3584 bytes of it                                    |
 
 `chip8` has no dependency on SDL and `app` has no dependency on `chip8`; `main.cpp` is the only translation unit that includes both. That's the boundary that mattered, and it paid for itself immediately: every measurement in this devlog was taken by linking `chip8.cpp` against a twelve-line headless harness that runs N cycles and dumps `displayBuffer` as ASCII. No window, no event loop, no SDL at all.
 
@@ -138,9 +138,9 @@ void chip8::OP_8xy4() { std::cout << std::hex << opcode << ": OP_8xy4\n"; }
 
 Two commits later, `c3be6cd` wires up the fetch, adds a `main.cpp` that runs 100 cycles against a ROM, and nothing else. **The machine could not add two numbers, and the decoder was fully tested.**
 
-This is the part of the process I'd defend hardest, and it's a straight lift of how the hardware itself is organised. Decode and execute are separate stages, so they should be separately wrong. With every handler a no-op, the program counter marches linearly from `0x200` and each cycle prints the opcode it fetched next to the handler it dispatched to. Two failure modes — *dispatched to the wrong handler* and *the handler computes the wrong thing* — are cleanly separated, and the first one is checkable by eye against the opcode printed beside it.
+This is the part of the process I'd defend hardest, and it's a straight lift of how the hardware itself is organised. Decode and execute are separate stages, so they should be separately wrong. With every handler a no-op, the program counter marches linearly from `0x200` and each cycle prints the opcode it fetched next to the handler it dispatched to. Two failure modes (*dispatched to the wrong handler* and *the handler computes the wrong thing*) are cleanly separated, and the first one is checkable by eye against the opcode printed beside it.
 
-There is a detail here I only noticed reconstructing the history: **the ROM used for that decoder test was Tetris.** The file committed as `test.ch8` in `c3be6cd` is byte-identical to the `tetris.ch8` added six commits later; a real game was serving as an opcode-stream generator before a single instruction existed. That is a better fixture than a hand-written one, for two reasons. A real ROM has a realistic opcode distribution, so the common paths get hammered and the rare ones show up as gaps. And because every handler is a no-op, the PC walks straight through the ROM's *data* as well as its code, decoding tables and sprite bytes as if they were instructions — which is precisely the input distribution you want when the thing under test is a decoder and not a program.
+There is a detail here I only noticed reconstructing the history: **the ROM used for that decoder test was Tetris.** The file committed as `test.ch8` in `c3be6cd` is byte-identical to the `tetris.ch8` added six commits later; a real game was serving as an opcode-stream generator before a single instruction existed. That is a better fixture than a hand-written one, for two reasons. A real ROM has a realistic opcode distribution, so the common paths get hammered and the rare ones show up as gaps. And because every handler is a no-op, the PC walks straight through the ROM's *data* as well as its code, decoding tables and sprite bytes as if they were instructions, which is precisely the input distribution you want when the thing under test is a decoder and not a program.
 
 It also, three days later, turned out to be the exact input distribution that hides [[#Part 4 What the test ROM does not test|Part 4]].
 
@@ -169,9 +169,9 @@ Twenty-seven of the twenty-eight sites that extract `x` use the first. `OP_Fx33`
 
 **So `Vx` was always 0**, and both instructions silently degraded into "save and restore `V0`, and nothing else." Not a crash. Not a wrong address. Just fifteen registers quietly not participating.
 
-That is the exact shape of the assert bug from my [[Raycasting a Maze in Real Time#Part 7 Two texture bugs that cancelled each other|raycaster]], where a bounds check validated a global coordinate against a local array. Same category, different domain: **a mask is a statement about which coordinate space its operand is in, and nothing in the type system records that.** `uint16_t` is `uint16_t` whether the nibble you want is at bit 8 or bit 0. The compiler cannot help, and it did not warn, because there is nothing wrong with the expression — it computes zero correctly.
+That is the exact shape of the assert bug from my [[Raycasting a Maze in Real Time#Part 7 Two texture bugs that cancelled each other|raycaster]], where a bounds check validated a global coordinate against a local array. Same category, different domain: **a mask is a statement about which coordinate space its operand is in, and nothing in the type system records that.** `uint16_t` is `uint16_t` whether the nibble you want is at bit 8 or bit 0. The compiler cannot help, and it did not warn, because there is nothing wrong with the expression, it computes zero correctly.
 
-**Why it survived two days.** Look at the commit it was fixed in. `FX55`/`FX65` are pure state movement between registers and RAM; on their own they produce no output at all. The decoder test in [[#Part 2 Testing the decoder before writing the semantics|Part 2]] couldn't catch it because the decoder was fine. It became observable in exactly the commit that added `OP_Dxyn`, because that is the commit where the machine gained the ability to *show* the contents of a register. **The bug was fixed the same hour the emulator grew a screen, and that is not a coincidence — it is the definition of observability.**
+**Why it survived two days.** Look at the commit it was fixed in. `FX55`/`FX65` are pure state movement between registers and RAM; on their own they produce no output at all. The decoder test in [[#Part 2 Testing the decoder before writing the semantics|Part 2]] couldn't catch it because the decoder was fine. It became observable in exactly the commit that added `OP_Dxyn`, because that is the commit where the machine gained the ability to *show* the contents of a register. **The bug was fixed the same hour the emulator grew a screen, and that is not a coincidence (it is the definition of observability).**
 
 **Putting a number on it.** Reverting just those two masks and re-running the opcode test ROM through a headless harness:
 
@@ -200,14 +200,14 @@ So I measured it. Same headless harness, plus a counter keyed on the decoded opc
 
 **Six of the thirty-four instruction bodies in this emulator have never executed once.** Not "rarely". Not "only in edge cases". Zero times, across a purpose-built conformance ROM and two hundred thousand cycles of real gameplay:
 
-| Never executed | What it does |
-|---|---|
-| `00E0` | CLS — clear the display |
-| `8xy7` | SUBN — reverse subtract |
-| `Fx0A` | LD Vx, K — block until a key is pressed |
-| `Fx18` | LD ST, Vx — set the sound timer |
-| `Fx29` | LD F, Vx — point I at a font character |
-| **`Bnnn`** | **JP V0, addr — jump to `nnn + V0`** |
+| Never executed | What it does                            |
+| -------------- | --------------------------------------- |
+| `00E0`         | CLS = clear the display                 |
+| `8xy7`         | SUBN = reverse subtract                 |
+| `Fx0A`         | LD Vx, K = block until a key is pressed |
+| `Fx18`         | LD ST, Vx = set the sound timer         |
+| `Fx29`         | LD F, Vx = point I at a font character  |
+| **`Bnnn`**     | **JP V0, addr = jump to `nnn + V0`**    |
 
 That last one is wrong.
 
@@ -257,13 +257,13 @@ And the six never-executed handlers are not a random sample. Look at what they a
 
 Once `tableF` turned out to be indexable past its end, the obvious move was to check the rest. Every array in `chip8` is a fixed-size member, every index is derived from ROM data, and in four cases out of five the two do not agree.
 
-| Array | Declared size | Index expression | Reachable range | Agrees? |
-|---|---|---|---|---|
-| `masterTable` | `[0xF + 1]` = 16 | `opcode >> 12` | 0 – 15 | yes |
-| `table0`, `table8`, `tableE` | `[0xE + 1]` = **15** | `opcode & 0x000F` | 0 – **15** | **off by one** |
-| `tableF` | `[0x65 + 1]` = **102** | `opcode & 0x00FF` | 0 – **255** | **off by 154** |
-| `memory` | 4096 | `index + i`, `programCounter` | 0 – 4110 | **no** |
-| `displayBuffer` | 2048 | `(yPos+row)*64 + xPos+col` | 0 – **2950** | **no** |
+| Array                        | Declared size          | Index expression              | Reachable range | Agrees?        |
+| ---------------------------- | ---------------------- | ----------------------------- | --------------- | -------------- |
+| `masterTable`                | `[0xF + 1]` = 16       | `opcode >> 12`                | 0 to 15         | yes            |
+| `table0`, `table8`, `tableE` | `[0xE + 1]` = **15**   | `opcode & 0x000F`             | 0 to **15**     | **off by one** |
+| `tableF`                     | `[0x65 + 1]` = **102** | `opcode & 0x00FF`             | 0 to **255**    | **off by 154** |
+| `memory`                     | 4096                   | `index + i`, `programCounter` | 0 to 4110       | **no**         |
+| `displayBuffer`              | 2048                   | `(yPos+row)*64 + xPos+col`    | 0 to **2950**   | **no**         |
 
 Only `masterTable` is right, and it is right for a structural reason: a 4-bit index has exactly 16 values and the table has exactly 16 slots, so the size *is* the range. Every other table is sized to **the largest opcode that happens to be valid** rather than to the largest index the expression can produce. `table8` stops at `0xE` because `8xyE` is the last legal `8` instruction; but `8xyF` is a perfectly reachable 16-bit value, and nothing between the ROM and the array subscript rejects it.
 
@@ -292,7 +292,7 @@ dispatch tables= bytes 12384 .. 14992   <- 2608 bytes of pointer-to-member funct
 
 **A sprite drawn near the bottom-right corner XORs `0xFFFFFFFF` over the emulator's own dispatch tables**, and then keeps going past the end of the object entirely. The machine's instruction decoder is downstream of its framebuffer in memory, and the framebuffer has no upper bound.
 
-I want to be precise about how bad this actually is, because "reachable" and "reached" are different words. I instrumented the write itself — not the computed index, the actual XOR — and ran both ROMs:
+I want to be precise about how bad this actually is, because "reachable" and "reached" are different words. I instrumented the write itself (not the computed index, the actual XOR) and ran both ROMs:
 
 | ROM | Cycles | Sprite writes past the buffer |
 |---|---|---|
@@ -300,9 +300,9 @@ I want to be precise about how bad this actually is, because "reachable" and "re
 | `tetris.ch8` | 200,000 | 0 |
 | my five-instruction sprite ROM | 4 | **34, immediately** |
 
-Tetris comes close. It draws a 4-row sprite at (30, 29), whose bottom row computes indices 2078–2085 — past the end — but the sprite's bottom row happens to be blank in those columns, and the write only happens `if (spritePixel)`. **The bound is violated by the address computation on every frame and saved by the contents of the sprite.** That is not a safety property. That is luck with good timing.
+Tetris comes close. It draws a 4-row sprite at (30, 29), whose bottom row computes indices 2078 to 2085 (past the end) but the sprite's bottom row happens to be blank in those columns, and the write only happens `if (spritePixel)`. **The bound is violated by the address computation on every frame and saved by the contents of the sprite.** That is not a safety property. That is luck with good timing.
 
-**The fix is not a bounds check, it is a decision.** There are two defensible behaviours for a sprite that runs off the edge — clip it, or wrap it to the opposite edge — and real CHIP-8 programs depend on which one you pick. The current code implements a third thing, which is "index into whatever is next in the struct," and it implements it *because nobody chose*. A missing bound is usually a missing decision wearing a bounds check's clothes.
+**The fix is not a bounds check, it is a decision.** There are two defensible behaviours for a sprite that runs off the edge  (clip it, or wrap it to the opposite edge) and real CHIP-8 programs depend on which one you pick. The current code implements a third thing, which is "index into whatever is next in the struct," and it implements it *because nobody chose*. A missing bound is usually a missing decision wearing a bounds check's clothes.
 
 The same reasoning applies to `memory`. `Fx55` writes `memory[index + i]` for `i` up to 15, with `index` a 12-bit value that can be `0xFFF`, so a ROM can write 15 bytes past the end of a 4 KB array whose successor in the struct is `index` itself. And `load_rom` reads a file straight into `memory + 0x200` with **no size check at all**, so a 4 KB ROM overruns the address space by 512 bytes into the display buffer and the keypad.
 
@@ -319,7 +319,7 @@ A path that doesn't exist produces no error, no message, and no non-zero exit. M
 ---
 ## Part 6: Three clocks, one knob
 
-The CHIP-8 specification describes three independent rates. The CPU executes instructions at whatever speed the host manages, roughly 500–1000 per second on a VIP. The delay and sound timers decrement at **exactly 60 Hz**, independent of the CPU. The display refreshes at whatever the display refreshes at.
+The CHIP-8 specification describes three independent rates. The CPU executes instructions at whatever speed the host manages, roughly 500 to 1000 per second on a VIP. The delay and sound timers decrement at **exactly 60 Hz**, independent of the CPU. The display refreshes at whatever the display refreshes at.
 
 Here is `cycle_cpu`:
 
@@ -353,9 +353,9 @@ $$
 
 The timers are supposed to run at 60. They run at **5.6× the specified rate**, and the test script's `1` makes it **16.7×**.
 
-This is not a cosmetic issue, because Tetris uses the delay timer as its clock. In 200,000 cycles it executes `Fx15` (set delay timer) 799 times and `Fx07` (read delay timer) 316 times; the piece fall rate, the input repeat rate and the line-clear animation are all `LD DT, n` followed by a busy-wait on `LD Vx, DT`. On real hardware that wait is `n/60` seconds *regardless of CPU speed* — that is the entire reason the timers are specified as an independent 60 Hz clock. Here the wait is `n` instructions, because each instruction in the wait loop decrements the very timer it is polling.
+This is not a cosmetic issue, because Tetris uses the delay timer as its clock. In 200,000 cycles it executes `Fx15` (set delay timer) 799 times and `Fx07` (read delay timer) 316 times; the piece fall rate, the input repeat rate and the line-clear animation are all `LD DT, n` followed by a busy-wait on `LD Vx, DT`. On real hardware that wait is `n/60` seconds *regardless of CPU speed*, that is the entire reason the timers are specified as an independent 60 Hz clock. Here the wait is `n` instructions, because each instruction in the wait loop decrements the very timer it is polling.
 
-So the game's speed depends on `cycleDelay` twice, in opposite directions, and the two effects don't cancel — they multiply. Turning the CPU down to make the game slower also turns the timers down, which makes every timed delay complete in the same number of instructions it always did. **The knob labelled "emulation speed" cannot actually change the ratio of anything to anything.**
+So the game's speed depends on `cycleDelay` twice, in opposite directions, and the two effects don't cancel (they multiply). Turning the CPU down to make the game slower also turns the timers down, which makes every timed delay complete in the same number of instructions it always did. **The knob labelled "emulation speed" cannot actually change the ratio of anything to anything.**
 
 The fix is small and I want to be clear that it is small, because the interesting part isn't the fix:
 
@@ -369,9 +369,9 @@ while (timerAccumulator >= 1000.0f / 60.0f) {
 }
 ```
 
-Two accumulators — one for CPU cycles, one for timers — and the display presents when the framebuffer is dirty rather than when an instruction retires. That's maybe fifteen lines.
+Two accumulators (one for CPU cycles, one for timers) and the display presents when the framebuffer is dirty rather than when an instruction retires. That's maybe fifteen lines.
 
-**What's worth extracting is why the collapse happened at all.** `cycle_cpu` is named for one job and does three, and the two extra ones got in because they are *mentioned in the same paragraph of the spec* as the fetch-decode-execute cycle. Proximity in a document became proximity in a function, and a function that ticks three clocks has silently asserted that they are the same clock. **Every independent rate in a system deserves its own accumulator, and the moment two of them share one, the system has lost the ability to express the difference between them.** That is the same failure shape as the depth buffer in my [[Raycasting a Maze in Real Time#Part 4 What belongs in a depth buffer|raycaster]] — two different quantities stored in one `float`, with nothing recording the difference — except that here the two quantities are *times*, and the loss is invisible because both of them still tick.
+**What's worth extracting is why the collapse happened at all.** `cycle_cpu` is named for one job and does three, and the two extra ones got in because they are *mentioned in the same paragraph of the spec* as the fetch-decode-execute cycle. Proximity in a document became proximity in a function, and a function that ticks three clocks has silently asserted that they are the same clock. **Every independent rate in a system deserves its own accumulator, and the moment two of them share one, the system has lost the ability to express the difference between them.** That is the same failure shape as the depth buffer in my [[Raycasting a Maze in Real Time#Part 4 What belongs in a depth buffer|raycaster]] (two different quantities stored in one `float`, with nothing recording the difference) except that here the two quantities are *times*, and the loss is invisible because both of them still tick.
 
 ---
 ## Part 7: The display layer, and the bug that monochrome hides
@@ -384,9 +384,9 @@ It's the right call, and it is worth saying why, because "wasteful" and "wrong" 
 SDL_UpdateTexture(texture, nullptr, buffer, pitch);
 ```
 
-It also makes `Dxyn` trivial. A CHIP-8 sprite pixel is one bit and a screen pixel is 32, so they cannot be XORed directly — but a sprite bit that is *set* means "invert this pixel", and inverting a pixel that is all-zeros-or-all-ones is `^= 0xFFFFFFFF`. One instruction, no branch on the current value, collision detection falling out of a comparison against the same constant.
+It also makes `Dxyn` trivial. A CHIP-8 sprite pixel is one bit and a screen pixel is 32, so they cannot be XORed directly, but a sprite bit that is *set* means "invert this pixel", and inverting a pixel that is all-zeros-or-all-ones is `^= 0xFFFFFFFF`. One instruction, no branch on the current value, collision detection falling out of a comparison against the same constant.
 
-The cost is that the constant `0xFFFFFFFF` now appears in three places (the clear, the collision test, the XOR) and each occurrence independently assumes the encoding. Change the pixel format and the collision test in `Dxyn` doesn't fail to compile — it just quietly stops detecting collisions, which in Tetris means pieces stop landing. An invariant spread across three call sites with no owner is the same problem as the sprite bound in Part 5, one abstraction level up.
+The cost is that the constant `0xFFFFFFFF` now appears in three places (the clear, the collision test, the XOR) and each occurrence independently assumes the encoding. Change the pixel format and the collision test in `Dxyn` doesn't fail to compile, it just quietly stops detecting collisions, which in Tetris means pieces stop landing. An invariant spread across three call sites with no owner is the same problem as the sprite bound in Part 5, one abstraction level up.
 
 **And there's a bug here that cannot fire, which is the interesting part.** The texture is created as:
 
@@ -394,27 +394,27 @@ The cost is that the constant `0xFFFFFFFF` now appears in three places (the clea
 SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, 64, 32);
 ```
 
-In my [[Raycasting a Maze in Real Time#Part 9 From frames on disk to a window|raycaster]] I spent real time on exactly this line, because SDL names pixel formats by byte order **within a 32-bit word, most significant first**, not by their order in memory — so a little-endian buffer with red in the low byte is `ABGR8888`, and guessing `RGBA8888` swaps red and blue on every pixel. It looks like a rendering bug and it sends you into the wrong file.
+In my [[Raycasting a Maze in Real Time#Part 9 From frames on disk to a window|raycaster]] I spent real time on exactly this line, because SDL names pixel formats by byte order **within a 32-bit word, most significant first**, not by their order in memory. So a little-endian buffer with red in the low byte is `ABGR8888`, and guessing `RGBA8888` swaps red and blue on every pixel. It looks like a rendering bug and it sends you into the wrong file.
 
-Here, `RGBA8888` is what's written, and it is invisible whether it's right or wrong. `0xFFFFFFFF` is identical under every permutation of its bytes, and so is `0x00000000`. **A monochrome framebuffer cannot distinguish a correct pixel format from an incorrect one**, in precisely the way that a 512×512 framebuffer cannot distinguish a correct row stride from an incorrect one — which is the bug that cost me a day on the last project.
+Here, `RGBA8888` is what's written, and it is invisible whether it's right or wrong. `0xFFFFFFFF` is identical under every permutation of its bytes, and so is `0x00000000`. **A monochrome framebuffer cannot distinguish a correct pixel format from an incorrect one**, in precisely the way that a 512×512 framebuffer cannot distinguish a correct row stride from an incorrect one, which is the bug that cost me a day on the last project.
 
 That is now twice, in two consecutive projects, that a degenerate value has deleted a whole class of bug from my ability to observe it. I'm treating it as a rule: **when a test fixture makes two things equal, it has stopped testing the difference between them.** Square buffers hide strides. Monochrome hides channel order. Zero-filled memory hides load failures. The fixture that catches the most bugs is the one where every dimension, channel and constant is deliberately distinct.
 
-One more thing about the SDL3 layer, carried over deliberately from last time: none of the initialisation is checked. `SDL_Init`, `SDL_CreateWindow`, `SDL_CreateRenderer` and `SDL_CreateTexture` all return values that this constructor ignores. I knew the SDL3 convention going in — success is `true`, not `0`, inverted from SDL2 — and wrote the constructor anyway with no checks, because the emulator was the interesting part and the window was scaffolding. That's a defensible priority and an indefensible constructor: a `chip8` object that fails to get a window still runs, still executes ROMs, and still returns 0 from `main`.
+One more thing about the SDL3 layer, carried over deliberately from last time: none of the initialisation is checked. `SDL_Init`, `SDL_CreateWindow`, `SDL_CreateRenderer` and `SDL_CreateTexture` all return values that this constructor ignores. I knew the SDL3 convention going in (success is `true`, not `0`, inverted from SDL2) and wrote the constructor anyway with no checks, because the emulator was the interesting part and the window was scaffolding. That's a defensible priority and an indefensible constructor: a `chip8` object that fails to get a window still runs, still executes ROMs, and still returns 0 from `main`.
 
 ---
 ## Bugs, and how I found them
 
-| Symptom | Cause | Fix |
-|---|---|---|
-| `table0[i] = OP_NULL` refused to compile | A member function's name is not convertible to a pointer-to-member; the object isn't available at the store | `&chip8::OP_NULL`, and `(this->*table[i])()` at the call — [[#Part 1 Decoding by table\|Part 1]] |
-| `FX55`/`FX65` moved only `V0` | `(opcode >> 8u) & 0x0F00u` — shifted like one idiom, masked like the other, so `Vx` was always 0 | `& 0x000Fu`. Measured: the test ROM goes 18 OK → 16 OK / 2 NO — [[#Part 3 The mask that was in the wrong coordinate space\|Part 3]] |
-| Nothing. 18/18 and Tetris plays | `Bnnn` dereferences its operand: `memory[nnn] + V0` instead of `nnn + V0`. Never executed by either ROM | Found by measuring handler coverage, not by testing — [[#Part 4 What the test ROM does not test\|Part 4]] |
-| Segfault from a 4-byte ROM | `Bnnn` → PC lands in the font → `F090` decodes → `tableF[0x90]` indexes a 102-entry array | Size the tables to the index range, not to the last valid opcode — [[#Part 5 Every array here has a bound nobody wrote down\|Part 5]] |
-| Timers run 5.6× fast at the shipped settings | `cycle_cpu` decrements both timers once per instruction; the loop presents a frame per instruction too | Separate accumulators for CPU and 60 Hz timers — [[#Part 6 Three clocks, one knob\|Part 6]] |
-| Silent black window | `load_rom` has no `else` on `is_open()`; zeroed memory decodes as `00E0` forever | Report the failure and exit non-zero |
-| `if (stackPointer < 0)` never fires | `stackPointer` is `uint8_t`; `-Wtype-limits` says *comparison is always false due to limited range of data type* | Check `== 0` **before** the decrement, not `< 0` after it |
-| `memset` compiles on clang, fails on g++ | `<cstring>` is never included; the MSVC headers pull it in transitively and libstdc++ does not | Include what you use |
+| Symptom                                      | Cause                                                                                                            | Fix                                                                                                                                    |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `table0[i] = OP_NULL` refused to compile     | A member function's name is not convertible to a pointer-to-member; the object isn't available at the store      | `&chip8::OP_NULL`, and `(this->*table[i])()` at the call -> [[#Part 1 Decoding by table\|Part 1]]                                      |
+| `FX55`/`FX65` moved only `V0`                | `(opcode >> 8u) & 0x0F00u` = shifted like one idiom, masked like the other, so `Vx` was always 0                 | `& 0x000Fu`. Measured: the test ROM goes 18 OK → 16 OK / 2 NO -> [[#Part 3 The mask that was in the wrong coordinate space\|Part 3]]   |
+| Nothing. 18/18 and Tetris plays              | `Bnnn` dereferences its operand: `memory[nnn] + V0` instead of `nnn + V0`. Never executed by either ROM          | Found by measuring handler coverage, not by testing -> [[#Part 4 What the test ROM does not test\|Part 4]]                             |
+| Segfault from a 4-byte ROM                   | `Bnnn` → PC lands in the font → `F090` decodes → `tableF[0x90]` indexes a 102-entry array                        | Size the tables to the index range, not to the last valid opcode -> [[#Part 5 Every array here has a bound nobody wrote down\|Part 5]] |
+| Timers run 5.6× fast at the shipped settings | `cycle_cpu` decrements both timers once per instruction; the loop presents a frame per instruction too           | Separate accumulators for CPU and 60 Hz timers -> [[#Part 6 Three clocks, one knob\|Part 6]]                                           |
+| Silent black window                          | `load_rom` has no `else` on `is_open()`; zeroed memory decodes as `00E0` forever                                 | Report the failure and exit non-zero                                                                                                   |
+| `if (stackPointer < 0)` never fires          | `stackPointer` is `uint8_t`; `-Wtype-limits` says *comparison is always false due to limited range of data type* | Check `== 0` **before** the decrement, not `< 0` after it                                                                              |
+| `memset` compiles on clang, fails on g++     | `<cstring>` is never included; the MSVC headers pull it in transitively and libstdc++ does not                   | Include what you use                                                                                                                   |
 
 The method that found the last four is the one I'd point at. **The trace printer and the headless harness are the same tool at two scales.** `chip8.cpp` has no dependency on SDL, so linking it against a twelve-line `main` that runs N cycles and dumps `displayBuffer` as ASCII costs nothing, runs in milliseconds, and can be re-linked with any single line of the emulator deliberately reverted. That is how the 18-vs-16 measurement in Part 3 was taken, how the coverage table in Part 4 was taken, and how the out-of-bounds write counts in Part 5 were taken. Every number in this devlog is a `g++` invocation away from being reproduced.
 
@@ -439,13 +439,13 @@ Ordered the way I'd actually pick them up.
 ---
 ## What I took away
 
-**"It passes" and "it ran" are different measurements, and only one of them is about the code you wrote.** The opcode test ROM is green. Tetris plays. Eighteen out of eighteen. And six of thirty-four instruction bodies had never executed, one of them was wrong, and reaching it crashes the process. Nothing about running the tests harder would have surfaced that — it needed a different instrument pointed at a different quantity. Every project in this series has had a moment where the answer was *stop reasoning and measure*; this is the first one where the thing worth measuring wasn't a number in the output at all.
+**"It passes" and "it ran" are different measurements, and only one of them is about the code you wrote.** The opcode test ROM is green. Tetris plays. Eighteen out of eighteen. And six of thirty-four instruction bodies had never executed, one of them was wrong, and reaching it crashes the process. Nothing about running the tests harder would have surfaced that, it needed a different instrument pointed at a different quantity. Every project in this series has had a moment where the answer was *stop reasoning and measure*; this is the first one where the thing worth measuring wasn't a number in the output at all.
 
 **A missing bound is usually a missing decision.** `tableF` is 102 entries because 102 is where the valid opcodes stop, and `Dxyn` walks off the framebuffer because nobody chose between clipping and wrapping. In both cases the array size is standing in for a decision that was never made, and the compiler dutifully encoded the non-decision as a number. When I find an off-by-N now, my first question is no longer "what should the bound be" but "what was the bound supposed to be *deciding*".
 
 **Observability is a feature with a ship date.** The `FX55` bug existed for two days and was fixed within an hour of the emulator gaining a display, because for those two days the machine had no way to show the contents of a register. That is not a story about carelessness. It is a story about the fact that *a bug you cannot observe does not exist yet, operationally*, and that the highest-leverage work is often the work that makes other bugs visible rather than the work that fixes them. The trace printer in Part 2 and the headless harness in Part 4 are both that same investment, at different points in the project.
 
-**When a fixture makes two things equal, it stops testing the difference.** A square framebuffer can't tell a right stride from a wrong one. A monochrome framebuffer can't tell `RGBA8888` from `ABGR8888`. Zero-filled memory can't tell a loaded ROM from a missing file. That's three, across two projects, and I now deliberately pick fixtures where every dimension and every constant is distinct — for the same reason you never test a matrix library with the identity.
+**When a fixture makes two things equal, it stops testing the difference.** A square framebuffer can't tell a right stride from a wrong one. A monochrome framebuffer can't tell `RGBA8888` from `ABGR8888`. Zero-filled memory can't tell a loaded ROM from a missing file. That's three, across two projects, and I now deliberately pick fixtures where every dimension and every constant is distinct, for the same reason you never test a matrix library with the identity.
 
 **The boundary I drew for tidiness turned out to be the test harness.** `chip8` knowing nothing about SDL looked like ordinary hygiene when I wrote it. It is the reason I could link the machine against a twelve-line `main`, run it two hundred thousand cycles in a few milliseconds, revert one line at a time, and put actual numbers in this devlog instead of adjectives. Decoupling is usually sold as a maintenance argument. Its real return, at least here, was *measurement*.
 
@@ -476,7 +476,7 @@ CHIP-8 keypad          Keyboard
 A 0 B F                 Z X C V
 ```
 
-To reproduce any measurement in this devlog, link `chip8.cpp` against a `main` that constructs a `chip8`, calls `load_rom`, loops `cycle_cpu()`, and prints `displayBuffer` — the state is public, so no other scaffolding is required.
+To reproduce any measurement in this devlog, link `chip8.cpp` against a `main` that constructs a `chip8`, calls `load_rom`, loops `cycle_cpu()`, and prints `displayBuffer`. The state is public, so no other scaffolding is required.
 
 ---
-_Reference material: [Austin Morlan's CHIP-8 emulator article](https://austinmorlan.com/posts/chip8_emulator/), read as a set of lessons rather than a codebase — it is where I learned that opcode dispatch wants to be a table. The architecture, the SDL3 layer, the timing loop, all 34 instruction bodies and every bug above are mine, and the git history is the record of which is which._
+_Reference material: [Austin Morlan's CHIP-8 emulator article](https://austinmorlan.com/posts/chip8_emulator/), read as a set of lessons rather than a codebase. It is where I learned that opcode dispatch wants to be a table. The architecture, the SDL3 layer, the timing loop, all 34 instruction bodies and every bug above are mine, and the git history is the record of which is which._
