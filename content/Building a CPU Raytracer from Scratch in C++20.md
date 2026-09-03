@@ -303,6 +303,8 @@ Ordered the way I'd actually pick them up:
 ---
 ## Build
 
+Source: [kads1024/mini-raytracer](https://github.com/kads1024/mini-raytracer)
+
 ```bash
 g++ -std=c++20 -O2 main.cpp -o raytracer
 ./raytracer          # writes out.ppm

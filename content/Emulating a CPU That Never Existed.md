@@ -452,6 +452,8 @@ Ordered the way I'd actually pick them up.
 ---
 ## Build
 
+Source: [kads1024/emulator-chip8](https://github.com/kads1024/emulator-chip8)
+
 ```bash
 clang++ -std=c++17 -fms-compatibility main.cpp app.cpp chip8.cpp \
     -o main.exe -I. -ISDL3 -Llib/x64 lib/x64/SDL3.lib

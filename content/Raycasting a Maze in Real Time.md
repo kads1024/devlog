@@ -361,6 +361,8 @@ Ordered the way I would actually pick them up.
 ---
 ## Build
 
+Source: [kads1024/mini-raycaster](https://github.com/kads1024/mini-raycaster)
+
 ```bash
 clang++ main.cpp framebuffer.cpp map.cpp utils.cpp renderer.cpp texture.cpp -I. -ISDL3 -Llib/x64 -lSDL3 -o main.exe
 ```
