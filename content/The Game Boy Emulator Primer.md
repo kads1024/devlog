@@ -79,7 +79,7 @@ That freedom is gone. On the Game Boy, an instruction takes a *specific, exact* 
 **CHIP-8 had no memory map.**
 CHIP-8 has 4KB of memory. All of it behaves identically. Address `$200` and address `$800` are the same kind of thing: a byte you can read and a byte you can write.
 
-That uniformity is gone. On the Game Boy, address `$FF44` is not a byte of memory. It's a *wire to the graphics chip*. Reading it asks the graphics chip a question. Writing to `$FF46` doesn't store a value — it triggers a 160-byte block copy that takes 640 clock cycles. Some addresses are read-only. Some are write-only. Some are read-only *sometimes*, depending on what the graphics chip is doing at that instant.
+That uniformity is gone. On the Game Boy, address `$FF44` is not a byte of memory. It's a *wire to the graphics chip*. Reading it asks the graphics chip a question. Writing to `$FF46` doesn't store a value, it triggers a 160-byte block copy that takes 640 clock cycles. Some addresses are read-only. Some are write-only. Some are read-only *sometimes*, depending on what the graphics chip is doing at that instant.
 
 **CHIP-8 had no interrupts.**
 Your CHIP-8 loop was: fetch, decode, execute, repeat. Forever. Nothing ever interrupted it. Nothing ever said "stop what you're doing and go run this other code."
