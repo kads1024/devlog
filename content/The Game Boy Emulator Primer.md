@@ -104,7 +104,7 @@ Game Boy games are up to 8 MB. The CPU can address 64 KB. The cartridge contains
 **CHIP-8 had no boot process.**
 You set `PC = 0x200` and started. There was no "power-on."
 
-The Game Boy has a 256-byte boot ROM inside the CPU chip itself that runs first, scrolls the Nintendo logo, plays the "ba-ding," verifies the cartridge is legitimate, and then *unmaps itself from memory* and hands control to the game — leaving the CPU registers in a very specific state that some games depend on.
+The Game Boy has a 256-byte boot ROM inside the CPU chip itself that runs first, scrolls the Nintendo logo, plays the "ba-ding," verifies the cartridge is legitimate, and then *unmaps itself from memory* and hands control to the game, leaving the CPU registers in a very specific state that some games depend on.
 
 **CHIP-8 had one implementation-defined quirk table.**
 You probably hit a few: does `8XY6` shift `VX` or `VY`? Does `FX55` increment `I`? Annoying, but a short list, and games mostly worked either way.
