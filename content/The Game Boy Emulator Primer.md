@@ -17,7 +17,7 @@ You have built a CHIP-8 emulator. That means you already own the single most imp
 
 But CHIP-8 taught you that idea in a padded room. The Game Boy will teach it to you outdoors, in weather.
 
-This primer is deliberately *not* a reference. Pan Docs is a reference — it is a beautiful, exhaustive, unforgiving encyclopedia written by people who already understand the machine, for people who already understand the machine. Reading Pan Docs before you have a mental model is like reading a dictionary to learn a language. This document is the language lessons. Pan Docs is the dictionary you'll reach for afterwards.
+This primer is deliberately *not* a reference. Pan Docs is a reference. It is a beautiful, exhaustive, unforgiving encyclopedia written by people who already understand the machine, for people who already understand the machine. Reading Pan Docs before you have a mental model is like reading a dictionary to learn a language. This document is the language lessons. Pan Docs is the dictionary you'll reach for afterwards.
 
 A few conventions:
 
@@ -33,22 +33,22 @@ Read it in order. Part 7 (graphics) will not make sense without Part 5 (memory),
 
 ## Table of Contents
 
-**Part 1** — From CHIP-8 to Real Hardware
-**Part 2** — Computer Architecture Foundations
-**Part 3** — The Game Boy as a Whole System
-**Part 4** — The CPU
-**Part 5** — Memory Architecture
-**Part 6** — Cartridges and Banking
-**Part 7** — The Graphics System
-**Part 8** — Timing
-**Part 9** — Interrupts
-**Part 10** — One Frame of Pokémon, in Slow Motion
-**Interlude** — Sound, at a High Level
-**Part 11** — Reading Pan Docs: A Survival Guide
-**Part 12** — Watching the 33C3 Talk: A Companion Guide
-**Appendix A** — A Suggested Build Order
-**Appendix B** — Glossary
-**Appendix C** — Test ROMs and What They're Actually Testing
+**Part 1**: From CHIP-8 to Real Hardware
+**Part 2**: Computer Architecture Foundations
+**Part 3**: The Game Boy as a Whole System
+**Part 4**: The CPU
+**Part 5**: Memory Architecture
+**Part 6**: Cartridges and Banking
+**Part 7**: The Graphics System
+**Part 8**: Timing
+**Part 9**: Interrupts
+**Part 10**: One Frame of Pokémon, in Slow Motion
+**Interlude**: Sound, at a High Level
+**Part 11**: Reading Pan Docs: A Survival Guide
+**Part: Watching the 33C3 Talk: A Companion Guide
+**Appendix A**: A Suggested Build Order
+**Appendix B**: Glossary
+**Appendix C**: Test ROMs and What They're Actually Testing
 
 ---
 ---
@@ -61,7 +61,7 @@ Here is something nobody tells you when you finish your CHIP-8 emulator:
 
 **CHIP-8 is not a computer. It never was.**
 
-CHIP-8 was created in 1977 by Joseph Weisbecker as an *interpreted programming language* — a virtual machine — that ran on top of actual hardware (the COSMAC VIP and Telmac 1800). The real CPU in those machines was an RCA 1802. CHIP-8 programs were interpreted by a program written for the 1802, in the same way that Python bytecode is interpreted by CPython.
+CHIP-8 was created in 1977 by Joseph Weisbecker as an *interpreted programming language* (a virtual machine) that ran on top of actual hardware (the COSMAC VIP and Telmac 1800). The real CPU in those machines was an RCA 1802. CHIP-8 programs were interpreted by a program written for the 1802, in the same way that Python bytecode is interpreted by CPython.
 
 So when you wrote a CHIP-8 emulator, you did not emulate a machine. **You wrote an interpreter for a language.** That's why it was pleasant. Languages are designed by humans for humans. Hardware is designed by engineers for factories, under cost pressure, in 1989.
 
