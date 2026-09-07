@@ -193,7 +193,7 @@ That interleaving loop is the heart of a Game Boy emulator. If you understand no
 
 Pan Docs assumes you know everything in this part. The 33C3 talk assumes it *and* assumes you find it obvious. Let's make it obvious.
 
-I'm going to teach these concepts generically first — the way they'd apply to any 1980s microcomputer — and then in Part 3 we'll snap them onto the Game Boy specifically. Learning the general shape first means the Game Boy will feel like an *instance of a familiar pattern* rather than a pile of trivia.
+I'm going to teach these concepts generically first (the way they'd apply to any 1980s microcomputer) and then in Part 3 we'll snap them onto the Game Boy specifically. Learning the general shape first means the Game Boy will feel like an *instance of a familiar pattern* rather than a pile of trivia.
 
 ## 2.1 What a CPU actually is
 
